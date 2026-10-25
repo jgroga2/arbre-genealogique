@@ -3,189 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arbre Généalogique | Famille Groga</title>
+    <title>Arbre Généalogique Dynamique</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body { background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
-        .node circle { fill: #2d3748; stroke: #4a5568; stroke-width: 2px; }
-        .link { fill: none; stroke: #4a5568; stroke-width: 2px; }
-        .card { background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px; text-align: center; width: 150px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .name { font-weight: bold; font-size: 13px; color: #f7fafc; margin-bottom: 4px; line-height: 1.2; }
-        .details { font-size: 11px; color: #a0aec0; }
-        .profession { font-size: 10px; color: #63b3ed; margin-top: 4px; }
-        #tree-container { width: 100vw; height: 100vh; cursor: grab; }
-        #tree-container:active { cursor: grabbing; }
+        body { background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; margin: 0; }
+        .link { stroke: #4a5568; stroke-opacity: 0.6; stroke-width: 2px; }
+        .node-person { fill: #2d3748; stroke: #63b3ed; stroke-width: 2px; cursor: pointer; }
+        .node-fam { fill: #4a5568; stroke: #a0aec0; stroke-width: 1px; }
+        .label { font-size: 12px; fill: #e2e8f0; pointer-events: none; text-anchor: middle; font-weight: 500; }
+        .sub-label { font-size: 9px; fill: #a0aec0; pointer-events: none; text-anchor: middle; }
+        #canvas-container { width: 100vw; height: 100vh; cursor: grab; }
+        #canvas-container:active { cursor: grabbing; }
     </style>
 </head>
-<body class="flex flex-col h-screen m-0 p-0">
+<body class="flex flex-col h-screen">
 
     <header class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 z-10 shadow-md absolute w-full top-0">
-        <h1 class="text-xl font-bold tracking-wider">Généalogie GROGA (9 Générations)</h1>
-        <div class="flex gap-2">
-            <button onclick="zoomIn()" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700 text-sm">+</button>
-            <button onclick="zoomOut()" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700 text-sm">-</button>
-            <button onclick="centerTree()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-sm text-white font-medium">Centrer</button>
+        <h1 class="text-xl font-bold tracking-wider">Arbre Ancestry (Lecture GEDCOM)</h1>
+        <div class="flex gap-4 items-center">
+            <!-- Upload manuel pour le test local -->
+            <input type="file" id="gedcom-upload" accept=".ged" class="text-sm text-gray-400 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-gray-700 cursor-pointer">
+            <button onclick="centerGraph()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-sm text-white font-medium">Centrer</button>
         </div>
     </header>
 
-    <main id="tree-container"></main>
+    <main id="canvas-container"></main>
 
     <script>
-        const treeData = {
-            name: "Jean-Marc GROGA BADA",
-            details: "Génération 1",
-            profession: "Toi",
-            children: [
-                {
-                    name: "Descendance",
-                    details: "Tes enfants",
-                    children: [
-                        { name: "Kais GROGA", details: "Mère: Nicole INAGOHI" },
-                        { name: "Ewen GROGA", details: "Mère: Nicole INAGOHI" },
-                        { name: "Nathanyel GROGA", details: "Mère: Rita C. A. DICOH" }
-                    ]
-                },
-                {
-                    name: "Ascendance Paternelle",
-                    details: "Famille GROGA BADA",
-                    children: [
-                        {
-                            name: "Emmanuel Désiré GROGA BADA",
-                            details: "1948 - 1998",
-                            children: [
-                                {
-                                    name: "Dr Jules GROGA BADA",
-                                    details: "1917 - Décédé",
-                                    profession: "Médecin",
-                                    children: [
-                                        { name: "Groga DOASSÉ", details: "Soubré, CI" },
-                                        { name: "Mahi AKRO", details: "Soubré, CI" }
-                                    ]
-                                },
-                                {
-                                    name: "Rolande DE SOUZA",
-                                    details: "1923 - 2000",
-                                    profession: "Sage-femme"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    name: "Ascendance Maternelle",
-                    details: "Familles POISSON & de THÉZILLAT",
-                    children: [
-                        {
-                            name: "Anne M. C. POISSON",
-                            details: "Née en 1954",
-                            children: [
-                                {
-                                    name: "Jean (Aoua) POISSON",
-                                    details: "1929 - Décédé",
-                                    profession: "Ambassadeur, ENFOM",
-                                    children: [
-                                        { name: "Georges POISSON", details: "1898 - 1967" },
-                                        { name: "Aoua BOUBACAR", details: "Niger" }
-                                    ]
-                                },
-                                {
-                                    name: "Claire de THÉZILLAT",
-                                    details: "1930 - 2017",
-                                    children: [
-                                        {
-                                            name: "Charles-Eugène-Roger de THÉZILLAT",
-                                            details: "Zinder (1899)",
-                                            profession: "Capitaine de cavalerie",
-                                            children: [
-                                                {
-                                                    name: "Charles de THÉZILLAT",
-                                                    details: "1824 - 1911",
-                                                    profession: "Sous-préfet",
-                                                    children: [
-                                                        {
-                                                            name: "Jean-François de THÉZILLAT",
-                                                            details: "Né en 1795",
-                                                            children: [
-                                                                {
-                                                                    name: "Toussaint de THÉZILLAT",
-                                                                    details: "x É.G. Deloménie",
-                                                                    children: [
-                                                                        {
-                                                                            name: "Jean-François de THÉZILLAT",
-                                                                            details: "1732 - 1802",
-                                                                            profession: "Génération 8 (Racine)"
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ]
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
-
         const width = window.innerWidth;
         const height = window.innerHeight;
         
-        const zoom = d3.zoom().scaleExtent([0.1, 3]).on("zoom", (event) => {
+        const zoom = d3.zoom().scaleExtent([0.1, 4]).on("zoom", (event) => {
             svg.attr("transform", event.transform);
         });
 
-        const canvas = d3.select("#tree-container").append("svg")
+        const svg = d3.select("#canvas-container").append("svg")
             .attr("width", "100%")
             .attr("height", "100%")
-            .call(zoom);
+            .call(zoom)
+            .append("g");
 
-        const svg = canvas.append("g");
+        let currentSimulation = null;
 
-        const root = d3.hierarchy(treeData);
+        // Fonction d'initialisation du graphe
+        function renderGraph(gedcomData) {
+            svg.selectAll("*").remove();
+            if (currentSimulation) currentSimulation.stop();
+
+            const { indis, fams } = parseGedcom(gedcomData);
+            
+            const nodes = Object.values(indis);
+            const links = [];
+
+            // Création des noeuds de famille (unions) pour router les liens proprement
+            Object.values(fams).forEach(fam => {
+                const famNode = { id: fam.id, isFam: true };
+                nodes.push(famNode);
+                
+                if (fam.husb && indis[fam.husb]) links.push({ source: indis[fam.husb], target: famNode });
+                if (fam.wife && indis[fam.wife]) links.push({ source: indis[fam.wife], target: famNode });
+                
+                fam.chil.forEach(childId => {
+                    if (indis[childId]) links.push({ source: famNode, target: indis[childId] });
+                });
+            });
+
+            currentSimulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(60))
+                .force("charge", d3.forceManyBody().strength(-800))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collide", d3.forceCollide().radius(40));
+
+            const link = svg.append("g")
+                .selectAll("line")
+                .data(links)
+                .enter().append("line")
+                .attr("class", "link");
+
+            const node = svg.append("g")
+                .selectAll("g")
+                .data(nodes)
+                .enter().append("g")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            // Rendu différencié : Personnes vs Unions
+            node.filter(d => !d.isFam).append("circle")
+                .attr("r", 25)
+                .attr("class", "node-person");
+
+            node.filter(d => d.isFam).append("rect")
+                .attr("width", 12)
+                .attr("height", 12)
+                .attr("x", -6)
+                .attr("y", -6)
+                .attr("class", "node-fam");
+
+            // Textes
+            const persons = node.filter(d => !d.isFam);
+            persons.append("text")
+                .attr("dy", -32)
+                .attr("class", "label")
+                .text(d => d.name);
+            persons.append("text")
+                .attr("dy", 40)
+                .attr("class", "sub-label")
+                .text(d => d.birth ? d.birth : '');
+
+            currentSimulation.on("tick", () => {
+                link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+                node.attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+        }
+
+        // Parseur GEDCOM léger intégré
+        function parseGedcom(data) {
+            const lines = data.split(/\r?\n/);
+            const indis = {}, fams = {};
+            let currentObj = null, currentType = '', currentTag = '';
+
+            lines.forEach(line => {
+                const match = line.match(/^\s*(\d+)\s+(@\w+@)?\s*([A-Z_]+)?(.*)/);
+                if (!match) return;
+                
+                const level = parseInt(match[1]);
+                const id = match[2];
+                const tag = match[3] || match[4].trim().split(' ')[0];
+                const value = match[4].trim().replace(tag, '').trim();
+
+                if (level === 0) {
+                    if (tag === 'INDI' || value === 'INDI') {
+                        currentObj = { id, name: 'Inconnu', birth: '', isFam: false };
+                        indis[id] = currentObj;
+                        currentType = 'INDI';
+                    } else if (tag === 'FAM' || value === 'FAM') {
+                        currentObj = { id, husb: null, wife: null, chil: [] };
+                        fams[id] = currentObj;
+                        currentType = 'FAM';
+                    } else {
+                        currentType = 'OTHER';
+                    }
+                } else if (level === 1 && currentType === 'INDI') {
+                    if (tag === 'NAME') currentObj.name = value.replace(/\//g, '');
+                    currentTag = tag;
+                } else if (level === 2 && currentType === 'INDI' && currentTag === 'BIRT' && tag === 'DATE') {
+                    currentObj.birth = value;
+                } else if (level === 1 && currentType === 'FAM') {
+                    if (tag === 'HUSB') currentObj.husb = value;
+                    if (tag === 'WIFE') currentObj.wife = value;
+                    if (tag === 'CHIL') currentObj.chil.push(value);
+                }
+            });
+            return { indis, fams };
+        }
+
+        // Gestion de l'upload local
+        document.getElementById('gedcom-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) { renderGraph(e.target.result); };
+            reader.readAsText(file);
+        });
+
+        // Automatisation GitHub (fetch du fichier s'il est présent)
+        fetch('arbre.ged')
+            .then(response => { if (response.ok) return response.text(); throw new Error('Fichier non trouvé'); })
+            .then(data => renderGraph(data))
+            .catch(err => console.log("Upload manuel requis ou arbre.ged manquant sur le serveur."));
+
+        function centerGraph() { d3.select("#canvas-container svg").transition().call(zoom.transform, d3.zoomIdentity.translate(width/2, height/2).scale(0.8)); }
         
-        // Espace entre les noeuds pour accommoder les 9 générations
-        const treeLayout = d3.tree().nodeSize([170, 220]);
-        treeLayout(root);
-
-        // Centrage initial adapté pour voir le point de départ
-        d3.select("#tree-container svg").call(zoom.transform, d3.zoomIdentity.translate(width / 2, 120).scale(0.8));
-
-        svg.selectAll(".link")
-            .data(root.links())
-            .enter().append("path")
-            .attr("class", "link")
-            .attr("d", d3.linkVertical()
-                .x(d => d.x)
-                .y(d => d.y));
-
-        const node = svg.selectAll(".node")
-            .data(root.descendants())
-            .enter().append("g")
-            .attr("class", "node")
-            .attr("transform", d => `translate(${d.x},${d.y})`);
-
-        node.append("foreignObject")
-            .attr("x", -75)
-            .attr("y", -35)
-            .attr("width", 150)
-            .attr("height", 110)
-            .html(d => `
-                <div class="card">
-                    <div class="name">${d.data.name}</div>
-                    <div class="details">${d.data.details || ''}</div>
-                    ${d.data.profession ? `<div class="profession">${d.data.profession}</div>` : ''}
-                </div>
-            `);
-
-        function zoomIn() { canvas.transition().call(zoom.scaleBy, 1.2); }
-        function zoomOut() { canvas.transition().call(zoom.scaleBy, 0.8); }
-        function centerTree() { canvas.transition().call(zoom.transform, d3.zoomIdentity.translate(width / 2, 120).scale(0.8)); }
+        function dragstarted(event, d) { if (!event.active) currentSimulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
+        function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
+        function dragended(event, d) { if (!event.active) currentSimulation.alphaTarget(0); d.fx = null; d.fy = null; }
     </script>
 </body>
 </html>
