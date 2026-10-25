@@ -7,21 +7,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body { background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
         .node circle { fill: #2d3748; stroke: #4a5568; stroke-width: 2px; }
-        .node text { font-size: 12px; fill: #e2e8f0; pointer-events: none; }
         .link { fill: none; stroke: #4a5568; stroke-width: 2px; }
-        .card { background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px; text-align: center; width: 140px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .name { font-weight: bold; font-size: 14px; color: #f7fafc; margin-bottom: 4px; }
+        .card { background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px; text-align: center; width: 150px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .name { font-weight: bold; font-size: 13px; color: #f7fafc; margin-bottom: 4px; line-height: 1.2; }
         .details { font-size: 11px; color: #a0aec0; }
         .profession { font-size: 10px; color: #63b3ed; margin-top: 4px; }
-        #tree-container { width: 100vw; height: 90vh; overflow: hidden; }
+        #tree-container { width: 100vw; height: 100vh; cursor: grab; }
+        #tree-container:active { cursor: grabbing; }
     </style>
 </head>
-<body class="flex flex-col h-screen">
+<body class="flex flex-col h-screen m-0 p-0">
 
-    <header class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 z-10 shadow-md">
-        <h1 class="text-xl font-bold tracking-wider">Généalogie GROGA</h1>
+    <header class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 z-10 shadow-md absolute w-full top-0">
+        <h1 class="text-xl font-bold tracking-wider">Généalogie GROGA (9 Générations)</h1>
         <div class="flex gap-2">
             <button onclick="zoomIn()" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700 text-sm">+</button>
             <button onclick="zoomOut()" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700 text-sm">-</button>
@@ -29,81 +29,103 @@
         </div>
     </header>
 
-    <main id="tree-container" class="flex-grow cursor-grab active:cursor-grabbing"></main>
+    <main id="tree-container"></main>
 
     <script>
-        // Piège d'architecture évité : plutôt qu'un parser GEDCOM complexe côté client,
-        // la data est structurée en JSON hiérarchique optimisé pour D3.js.
         const treeData = {
             name: "Jean-Marc GROGA BADA",
             details: "Génération 1",
+            profession: "Toi",
             children: [
                 {
-                    name: "Emmanuel Désiré GROGA BADA",
-                    details: "1948 - 1998",
-                    profession: "Père",
+                    name: "Descendance",
+                    details: "Tes enfants",
                     children: [
-                        {
-                            name: "Dr Jules GROGA BADA",
-                            details: "1917 - Décédé",
-                            profession: "Médecin (Soubré)",
-                            children: [
-                                { name: "Groga DOASSÉ", details: "Arrière-grand-père" },
-                                { name: "Mahi AKRO", details: "Arrière-grand-mère" }
-                            ]
-                        },
-                        {
-                            name: "Rolande DE SOUZA",
-                            details: "1923 - 2000",
-                            profession: "Sage-femme"
-                        }
+                        { name: "Kais GROGA", details: "Mère: Nicole INAGOHI" },
+                        { name: "Ewen GROGA", details: "Mère: Nicole INAGOHI" },
+                        { name: "Nathanyel GROGA", details: "Mère: Rita C. A. DICOH" }
                     ]
                 },
                 {
-                    name: "Anne M. C. POISSON",
-                    details: "Née en 1954",
-                    profession: "Mère",
+                    name: "Ascendance Paternelle",
+                    details: "Famille GROGA BADA",
                     children: [
                         {
-                            name: "Jean (Aoua) POISSON",
-                            details: "1929 - Décédé",
-                            profession: "Ambassadeur",
+                            name: "Emmanuel Désiré GROGA BADA",
+                            details: "1948 - 1998",
                             children: [
-                                { name: "Georges POISSON", details: "1898 - 1967" },
-                                { name: "Aoua BOUBACAR", details: "Décédée (Zinder)" }
-                            ]
-                        },
-                        {
-                            name: "Claire de THÉZILLAT",
-                            details: "1930 - 2017",
-                            children: [
-                                { name: "Charles-Eugène-Roger de THÉZILLAT", details: "Capitaine (Mission Foureau-Lamy 1899)", profession: "Officier" }
+                                {
+                                    name: "Dr Jules GROGA BADA",
+                                    details: "1917 - Décédé",
+                                    profession: "Médecin",
+                                    children: [
+                                        { name: "Groga DOASSÉ", details: "Soubré, CI" },
+                                        { name: "Mahi AKRO", details: "Soubré, CI" }
+                                    ]
+                                },
+                                {
+                                    name: "Rolande DE SOUZA",
+                                    details: "1923 - 2000",
+                                    profession: "Sage-femme"
+                                }
                             ]
                         }
                     ]
                 },
                 {
-                    name: "Conjointes & Enfants",
-                    details: "Descendance",
-                    profession: "Branches actuelles",
+                    name: "Ascendance Maternelle",
+                    details: "Familles POISSON & de THÉZILLAT",
                     children: [
                         {
-                            name: "Rita C. A. DICOH",
-                            details: "Compagne actuelle",
+                            name: "Anne M. C. POISSON",
+                            details: "Née en 1954",
                             children: [
-                                { name: "Nathanyel GROGA", details: "Fils" },
-                                { name: "Souleymane DICOH", details: "Beau-père" },
-                                { name: "Mme KAKOU", details: "Belle-mère" }
-                            ]
-                        },
-                        {
-                            name: "Nicole INAGOHI",
-                            details: "Ex-épouse",
-                            children: [
-                                { name: "Kais GROGA", details: "Fils" },
-                                { name: "Ewen GROGA", details: "Fils" },
-                                { name: "Narcisse INAGOHI", details: "Beau-père (Douanier)" },
-                                { name: "Justine YAPOBI", details: "Belle-mère" }
+                                {
+                                    name: "Jean (Aoua) POISSON",
+                                    details: "1929 - Décédé",
+                                    profession: "Ambassadeur, ENFOM",
+                                    children: [
+                                        { name: "Georges POISSON", details: "1898 - 1967" },
+                                        { name: "Aoua BOUBACAR", details: "Niger" }
+                                    ]
+                                },
+                                {
+                                    name: "Claire de THÉZILLAT",
+                                    details: "1930 - 2017",
+                                    children: [
+                                        {
+                                            name: "Charles-Eugène-Roger de THÉZILLAT",
+                                            details: "Zinder (1899)",
+                                            profession: "Capitaine de cavalerie",
+                                            children: [
+                                                {
+                                                    name: "Charles de THÉZILLAT",
+                                                    details: "1824 - 1911",
+                                                    profession: "Sous-préfet",
+                                                    children: [
+                                                        {
+                                                            name: "Jean-François de THÉZILLAT",
+                                                            details: "Né en 1795",
+                                                            children: [
+                                                                {
+                                                                    name: "Toussaint de THÉZILLAT",
+                                                                    details: "x É.G. Deloménie",
+                                                                    children: [
+                                                                        {
+                                                                            name: "Jean-François de THÉZILLAT",
+                                                                            details: "1732 - 1802",
+                                                                            profession: "Génération 8 (Racine)"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
                             ]
                         }
                     ]
@@ -112,7 +134,7 @@
         };
 
         const width = window.innerWidth;
-        const height = window.innerHeight - 70;
+        const height = window.innerHeight;
         
         const zoom = d3.zoom().scaleExtent([0.1, 3]).on("zoom", (event) => {
             svg.attr("transform", event.transform);
@@ -126,13 +148,14 @@
         const svg = canvas.append("g");
 
         const root = d3.hierarchy(treeData);
-        const treeLayout = d3.tree().nodeSize([160, 200]);
+        
+        // Espace entre les noeuds pour accommoder les 9 générations
+        const treeLayout = d3.tree().nodeSize([170, 220]);
         treeLayout(root);
 
-        // Centrage initial
-        d3.select("#tree-container svg").call(zoom.transform, d3.zoomIdentity.translate(width / 2, 100).scale(0.8));
+        // Centrage initial adapté pour voir le point de départ
+        d3.select("#tree-container svg").call(zoom.transform, d3.zoomIdentity.translate(width / 2, 120).scale(0.8));
 
-        // Liens
         svg.selectAll(".link")
             .data(root.links())
             .enter().append("path")
@@ -141,30 +164,28 @@
                 .x(d => d.x)
                 .y(d => d.y));
 
-        // Noeuds
         const node = svg.selectAll(".node")
             .data(root.descendants())
             .enter().append("g")
             .attr("class", "node")
             .attr("transform", d => `translate(${d.x},${d.y})`);
 
-        // Cartes HTML injectées dans le SVG via foreignObject pour un style facile
         node.append("foreignObject")
-            .attr("x", -70)
-            .attr("y", -30)
-            .attr("width", 140)
-            .attr("height", 100)
+            .attr("x", -75)
+            .attr("y", -35)
+            .attr("width", 150)
+            .attr("height", 110)
             .html(d => `
                 <div class="card">
                     <div class="name">${d.data.name}</div>
-                    <div class="details">${d.data.details}</div>
+                    <div class="details">${d.data.details || ''}</div>
                     ${d.data.profession ? `<div class="profession">${d.data.profession}</div>` : ''}
                 </div>
             `);
 
         function zoomIn() { canvas.transition().call(zoom.scaleBy, 1.2); }
         function zoomOut() { canvas.transition().call(zoom.scaleBy, 0.8); }
-        function centerTree() { canvas.transition().call(zoom.transform, d3.zoomIdentity.translate(width / 2, 100).scale(0.8)); }
+        function centerTree() { canvas.transition().call(zoom.transform, d3.zoomIdentity.translate(width / 2, 120).scale(0.8)); }
     </script>
 </body>
 </html>
